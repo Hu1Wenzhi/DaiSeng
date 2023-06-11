@@ -20,11 +20,13 @@ using namespace std;
 // 材料类产品产量
 static int shui;
 static int qing;
+static int chuan;
 static int tie_kuang;
 static int tong_kuang;
 static int shi_kuang;
 static int tai_kuang;
 static int tan_kuang;
+static int ke_ran_bing;
 static int yuan_you;
 static int tie_kuai;
 static int tong_kuai;
@@ -38,6 +40,7 @@ static int shi_mo_xi;
 
 static int ci_tie;
 static int xian_quan;
+static int jing_ge;
 static int bo_li;
 static int tai_he_jing;
 static int jing_gang_shi;
@@ -46,6 +49,7 @@ static int qing_bang;
 
 static int gang_cai;
 static int dian_dong_ji;
+static int tai_bo_li;
 static int leng_jing;
 static int tai_jing;
 static int tui_jing_qi;
@@ -56,21 +60,30 @@ static int wo_lun;
 static int gui_kuang;
 static int dian_lu_ban;
 static int liu_suan;
+static int na_mi_guan;
 static int pei_song;
 static int yun_shu_ji;
 static int yun_shu_chuan;
 
 static int dian_jiang;
 static int ci_chang_huan;
+static int kuan_dai;
 static int chu_li_qi;
 static int li_zi;
+static int ka_xi_mier;
+static int qi_yi;
+static int wei_mian;
+static int tou_jing;
 
 static int guang_zi;
 static int wei_jing;
+static int liang_zi;
 
 static int lan_tang;
 static int hong_tang;
 static int huang_tang;
+static int zi_tang;
+static int lv_tang;
 
 // 建筑类产品产量
 static int dian_li;
@@ -110,9 +123,11 @@ static float zhi_zuo_tai;
 static float jing_lian_chang;
 static float hua_gong_chang;
 static float yan_jiu_zhan;
+static float li_zi_dui_zhuang;
 
 const float		ye_v		=1; // 冶炼速度系数；
-const float		make_v		=0.75; // 制造速度系数；
+const float		make_v		=1; // 制造速度系数；
+const float		hua_v		=1; // 化工速度系数；
 
 void Sum(){
 	if (rong_lu !=0)
@@ -156,6 +171,7 @@ public:
 		
 		float fac = rate / output_v[0];
 		*facility += fac / coef;
+		// cout << fac << " " << coef << *facility << endl;
 
 		for (int i=0; i<input; i++) {
 			*input_list[i] -= input_v[i] * fac;
@@ -164,7 +180,7 @@ public:
 		for (int i=0; i<output; i++) {
 			*output_list[i] += output_v[i] * fac;
 		}
-		return fac;
+		return fac / coef;
 	}
 };
 
@@ -176,8 +192,8 @@ public:
 		input = 0;
 
 		output_list[0] = output;
-		output_v[0] = rate;
-		make(rate, 0.5);
+		output_v[0] = 36;
+		make(rate, 1);
 	}
 };
 
@@ -271,6 +287,50 @@ public:
 	static float num;
 };
 float YeTai::num = 0;
+
+class Chuan: public Technology {
+public:
+	Chuan(float rate) {
+		facility = &li_zi_dui_zhuang;
+
+		input_list[0] = &qing;
+		input_v[0] = 240;
+
+		output_list[0] = &chuan;
+		output_v[0] = 120;
+
+		new CaiKuang(rate*2, &qing);
+		num += make(rate, 1);
+	}
+	static void Num(){
+		if (num!=0)
+		cout << "Chuan " << num << endl;
+	}
+	static float num;
+};
+float Chuan::num = 0;
+
+class JingGe: public Technology {
+public:
+	JingGe(float rate) {
+		facility = &rong_lu;
+
+		input_list[0] = &tai_kuai;
+		input_v[0] = 30;
+
+		output_list[0] = &jing_ge;
+		output_v[0] = 30;
+
+		new YeTai(rate);
+		num += make(rate, ye_v);
+	}
+	static void Num(){
+		if (num!=0)
+		cout << "JingGe " << num << endl;
+	}
+	static float num;
+};
+float JingGe::num = 0;
 
 class BoLi: public Technology {
 public:
@@ -384,6 +444,30 @@ public:
 	static float num;
 };
 float JingLian::num = 0;
+
+class ShiMoXiH: public Technology {
+public:
+	ShiMoXiH(float rate) {
+		facility = &hua_gong_chang;
+
+		input_list[0] = &ke_ran_bing;
+		input_v[0] = 60;
+		new CaiKuang(rate, &ke_ran_bing);
+
+		output_list[0] = &shi_mo_xi;
+		output_v[0] = 60;
+		output_list[1] = &qing;
+		output_v[1] = 30;
+
+		num += make(rate, 1);
+	}
+	static void Num(){
+		if (num!=0)
+		cout << "ShiMoXiH " << num << endl;
+	}
+	static float num;
+};
+float ShiMoXiH::num = 0;
 
 class LieJie: public Technology {
 public:
@@ -753,7 +837,7 @@ public:
 		input = 3;
 		input_list[0] = &jing_you;
 		input_v[0] = 60;
-		new JingLian(rate*3/2);
+		new ChongZheng(rate*3/2);
 		input_list[1] = &shi_kuang;
 		input_v[1] = 80;
 		new CaiKuang(rate*2, &shi_kuang);
@@ -764,7 +848,7 @@ public:
 		output_list[0] = &liu_suan;
 		output_v[0] = 40;
 
-		num += make(rate, make_v);
+		num += make(rate, 1);
 	}
 	static void Num(){
 		if (num!=0)
@@ -829,6 +913,61 @@ public:
 };
 float ShiMoXi::num = 0;
 
+class NaMiGuan: public Technology {
+public:
+	NaMiGuan(float rate) {
+		facility = &hua_gong_chang;
+
+		input = 2;
+		input_list[0] = &shi_mo_xi;
+		input_v[0] = 45;
+		new ShiMoXiH(rate*3/2);
+		input_list[1] = &tai_kuai;
+		input_v[1] = 15;
+		new YeTai(rate/2);
+
+		output_list[0] = &na_mi_guan;
+		output_v[0] = 30;
+
+		num += make(rate, 1);
+	}
+	static void Num(){
+		if (num!=0)
+		cout << "NaMiGuan " << num << endl;
+	}
+	static float num;
+};
+float NaMiGuan::num = 0;
+
+class KuanDai: public Technology {
+public:
+	KuanDai(float rate) {
+		facility = &zhi_zuo_tai;
+
+		input = 3;
+		input_list[0] = &wo_lun;
+		input_v[0] = 15;
+		new NaMiGuan(rate*2);
+		input_list[1] = &ci_tie;
+		input_v[1] = 15;
+		new JingGe(rate*2);
+		input_list[2] = &shi_mo;
+		input_v[2] = 7.5;
+		new SuLiao(rate);
+
+		output_list[0] = &kuan_dai;
+		output_v[0] = 7.5;
+
+		num += make(rate, make_v);
+	}
+	static void Num(){
+		if (num!=0)
+		cout << "KuanDai " << num << endl;
+	}
+	static float num;
+};
+float KuanDai::num = 0;
+
 class DianJiang: public Technology {
 public:
 	DianJiang(float rate) {
@@ -866,7 +1005,7 @@ public:
 		new YeGui(rate*2);
 		input_list[1] = &tong_kuai;
 		input_v[1] = 30;
-		new YeTie(rate);
+		new YeTong(rate);
 
 		output_list[0] = &wei_jing;
 		output_v[0] = 30;
@@ -921,7 +1060,7 @@ public:
 		new YeTong(rate*2);
 		input_list[2] = &shi_mo_xi;
 		input_v[2] = 30;
-		new ShiMoXi(rate*2);
+		new ShiMoXiH(rate*2);
 
 		output_list[0] = &li_zi;
 		output_v[0] = 15;
@@ -1046,6 +1185,171 @@ public:
 };
 float YunShuChuan::num = 0;
 
+class QiYi: public Technology {
+public:
+	QiYi(float rate) {
+		facility = &li_zi_dui_zhuang;
+
+		input = 3;
+		input_list[0] = &li_zi;
+		input_v[0] = 15;
+		new LiZi(rate*2);
+		input_list[1] = &tie_kuai;
+		input_v[1] = 15;
+		new YeTie(rate*2);
+		input_list[2] = &chuan;
+		input_v[2] = 75;
+		new Chuan(rate*10);
+
+		output_list[0] = &qi_yi;
+		output_v[0] = 7.5;
+
+		num += make(rate, 1);
+	}
+	static void Num(){
+		if (num!=0)
+		cout << "QiYi " << num << endl;
+	}
+	static float num;
+};
+float QiYi::num = 0;
+
+class TouJing: public Technology {
+public:
+	TouJing(float rate) {
+		facility = &zhi_zuo_tai;
+
+		input = 2;
+		input_list[0] = &jing_gang_shi;
+		input_v[0] = 40;
+		new JingGang(rate*4);
+		input_list[1] = &qi_yi;
+		input_v[1] = 10;
+		new QiYi(rate);
+
+		output_list[0] = &tou_jing;
+		output_v[0] = 10;
+
+		num += make(rate, make_v);
+	}
+	static void Num(){
+		if (num!=0)
+		cout << "TouJing " << num << endl;
+	}
+	static float num;
+};
+float TouJing::num = 0;
+
+class TaiBoLi: public Technology {
+public:
+	TaiBoLi(float rate) {
+		facility = &zhi_zuo_tai;
+
+		input = 3;
+		input_list[0] = &bo_li;
+		input_v[0] = 24;
+		new BoLi(rate);
+		input_list[1] = &tai_kuai;
+		input_v[1] = 24;
+		new YeTai(rate);
+		input_list[2] = &shui;
+		input_v[2] = 24;
+		new CaiKuang(rate, &shui);
+
+		output_list[0] = &tai_bo_li;
+		output_v[0] = 24;
+
+		num += make(rate, make_v);
+	}
+	static void Num(){
+		if (num!=0)
+		cout << "TaiBoLi " << num << endl;
+	}
+	static float num;
+};
+float TaiBoLi::num = 0;
+
+class KaXiMier: public Technology {
+public:
+	KaXiMier(float rate) {
+		facility = &zhi_zuo_tai;
+
+		input = 3;
+		input_list[0] = &tai_jing;
+		input_v[0] = 15;
+		new TaiJing(rate);
+		input_list[1] = &shi_mo_xi;
+		input_v[1] = 30;
+		new ShiMoXiH(rate*2);
+		input_list[2] = &qing;
+		input_v[2] = 180;
+		new CaiKuang(rate*12, &qing);
+
+		output_list[0] = &ka_xi_mier;
+		output_v[0] = 15;
+
+		num += make(rate, make_v);
+	}
+	static void Num(){
+		if (num!=0)
+		cout << "KaXiMier " << num << endl;
+	}
+	static float num;
+};
+float KaXiMier::num = 0;
+
+class WeiMian: public Technology {
+public:
+	WeiMian(float rate) {
+		facility = &zhi_zuo_tai;
+
+		input = 2;
+		input_list[0] = &ka_xi_mier;
+		input_v[0] = 5;
+		new KaXiMier(rate);
+		input_list[1] = &tai_bo_li;
+		input_v[1] = 10;
+		new TaiBoLi(rate*2);
+
+		output_list[0] = &wei_mian;
+		output_v[0] = 5;
+
+		num += make(rate, make_v);
+	}
+	static void Num(){
+		if (num!=0)
+		cout << "WeiMian " << num << endl;
+	}
+	static float num;
+};
+float WeiMian::num = 0;
+
+class LiangZi: public Technology {
+public:
+	LiangZi(float rate) {
+		facility = &zhi_zuo_tai;
+
+		input = 2;
+		input_list[0] = &chu_li_qi;
+		input_v[0] = 20;
+		new ChuLiQi(rate*2);
+		input_list[1] = &wei_mian;
+		input_v[1] = 20;
+		new WeiMian(rate*2);
+
+		output_list[0] = &liang_zi;
+		output_v[0] = 10;
+
+		num += make(rate, make_v);
+	}
+	static void Num(){
+		if (num!=0)
+		cout << "LiangZi " << num << endl;
+	}
+	static float num;
+};
+float LiangZi::num = 0;
+
 class LanTang: public Technology {
 public:
 	LanTang(float rate) {
@@ -1123,6 +1427,58 @@ public:
 	static float num;
 };
 float HuangTang::num = 0;
+
+class ZiTang: public Technology {
+public:
+	ZiTang(float rate) {
+		facility = &yan_jiu_zhan;
+
+		input = 2;
+		input_list[0] = &chu_li_qi;
+		input_v[0] = 12;
+		new ChuLiQi(rate*2);
+		input_list[1] = &kuan_dai;
+		input_v[1] = 6;
+		new KuanDai(rate);
+
+		output_list[0] = &zi_tang;
+		output_v[0] = 6;
+
+		num += make(rate, 1);
+	}
+	static void Num(){
+		if (num!=0)
+		cout << "ZiTang " << num << endl;
+	}
+	static float num;
+};
+float ZiTang::num = 0;
+
+class LvTang: public Technology {
+public:
+	LvTang(float rate) {
+		facility = &yan_jiu_zhan;
+
+		input = 2;
+		input_list[0] = &tou_jing;
+		input_v[0] = 2.5;
+		new TouJing(rate/2);
+		input_list[1] = &liang_zi;
+		input_v[1] = 2.5;
+		new LiangZi(rate/2);
+
+		output_list[0] = &lv_tang;
+		output_v[0] = 5;
+
+		num += make(rate, 1);
+	}
+	static void Num(){
+		if (num!=0)
+		cout << "LvTang " << num << endl;
+	}
+	static float num;
+};
+float LvTang::num = 0;
 
 class ChuanSong: public Technology {
 public:
@@ -1379,86 +1735,107 @@ float XingJiZhan::num = 0;
 
 
 int main() {
-	Technology* list = new HongTang(60);
+	Technology* list;
+	list = new KaXiMier(60);
+	// list = new ChuLiQi(60);
+	// list = new WoLun(120);
+	// cout << "keranbing " << ke_ran_bing << endl;
 
 	Sum();
-	YeTie::Num();
-	YeTong::Num();
-	YeGui::Num();
-	YeTai::Num();
-	BoLi::Num();
-	ShiCai::Num();
-	ShiMo::Num();
-	JingLian::Num();
-	LieJie::Num();
-	SuLiao::Num();
-	CiTie::Num();
-	YouJi::Num();
-	XianQuan::Num();
-	JingGang::Num();
-	ChiLun::Num();
-	GangCai::Num();
-	ChongZheng::Num();
-	TaiJing::Num();
-
-	DianDongJi::Num();
-	WoLun::Num();
-	CiChangHuan::Num();
-	LengJing::Num();
-	DianLuBan::Num();
-	LiuSuan::Num();
-	DianJiang::Num();
-	WeiJing::Num();
-	LanTang::Num();
-	HongTang::Num();
-	HuangTang::Num();
-
-	ChuanSong::Num();
-	ChuanSongH::Num();
-	ZhiZuo::Num();
-	FengLian::Num();
-	FengLianH::Num();
-	FengLianS::Num();
-	DianHu::Num();
+    YeTie::Num();
+    YeTong::Num();
+    YeGui::Num();
+    YeTai::Num();
+    JingGe::Num();
+    BoLi::Num();
+    ShiCai::Num();
+    ShiMo::Num();
+    JingGang::Num();
+    JingLian::Num();
+    ShiMoXiH::Num();
+    LieJie::Num();
+    CiTie::Num();
+    XianQuan::Num();
+    ChiLun::Num();
+    GangCai::Num();
+    DianDongJi::Num();
+    LengJing::Num();
+    ChongZheng::Num();
+    SuLiao::Num();
+    YouJi::Num();
+    TaiJing::Num();
+    WoLun::Num();
+    CiChangHuan::Num();
+    DianLuBan::Num();
+    LiuSuan::Num();
+    TaiHeJing::Num();
+    ShiMoXi::Num();
+    NaMiGuan::Num();
+    KuanDai::Num();
+    DianJiang::Num();
+    WeiJing::Num();
+    ChuLiQi::Num();
+    LiZi::Num();
+    TuiJingQi::Num();
+    JiaLiTui::Num();
+    YunShuJi::Num();
+    YunShuChuan::Num();
+    QiYi::Num();
+    TouJing::Num();
+    TaiBoLi::Num();
+    KaXiMier::Num();
+    WeiMian::Num();
+    LiangZi::Num();
+    LanTang::Num();
+    HongTang::Num();
+    HuangTang::Num();
+    ZiTang::Num();
+    LvTang::Num();
+    ChuanSong::Num();
+    ChuanSongH::Num();
+    FengLian::Num();
+    FengLianH::Num();
+    FengLianS::Num();
+    ZhiZuo::Num();
+    DianHu::Num();
+    XingXingZhan::Num();
+    XingJiZhan::Num();
 
 	return 0;
 }
 
 
 /*
-list = new ChuanSongH(60);
-list = new FengLianS(60);
-list = new ZhiZuo(30);
-list = new DianHu(30);
 
-	熔炉 30.1667; 制作台 25.7778; 
-	YeTie 17.5 //
-	YeTong 4.41667//
-	ShiCai 1 
-	CiTie 7.25 //
-	XianQuan 2.41667 // 
-	ChiLun 4.5 //
-	DianDongJi 4.33333 //
+熔炉 70; 制作台 63; 精炼厂 13.3333; 化工厂 16; 研究站 12; 
+YeTie 15
+YeTong 9
+YeGui 8
+YeTai 10
+BoLi 4
+ShiMo 8
+JingGang 4
+JingLian 6.66667
+ShiMoXiH 4
+CiTie 12
+XianQuan 4
+ChiLun 4
+DianDongJi 8
+ChongZheng 6.66667
+SuLiao 6
+YouJi 6
+TaiJing 4
+WoLun 4
+DianLuBan 1
+WeiJing 4
+ChuLiQi 3
+LiZi 4
+QiYi 4
+TouJing 3
+TaiBoLi 5
+KaXiMier 4
+WeiMian 12
+LiangZi 3
+LvTang 12
 
-	WoLun 1.66667//
-	DianLuBan 2a//
-	ChuanSong 0.333333
-	ChuanSongH 0.333333
-	ZhiZuo 0.25
-	FengLian 1
-	FengLianH 0.5
-	FengLianS 0.5
-	DianHu 1.5
-
-list = new HuangTang(60);
-	熔炉 14; 制作台 5.33333; 精炼厂 13.3333; 化工厂 12; 研究站 8; 
-	YeTai 6
-	ShiMo 6//
-	JingLian 6.66667//
-	SuLiao 6
-	YouJi 6//
-	JingGang 2
-	ChongZheng 6.66667//
-	TaiJing 4
-	HuangTang 8
 */
